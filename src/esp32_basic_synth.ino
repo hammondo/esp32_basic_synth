@@ -40,11 +40,9 @@
  * @see https://circuits4you.com/2018/12/31/esp32-devkit-esp32-wroom-gpio-pinout/
  */
 
-
 #ifdef __CDT_PARSER__
 #include <cdt.h>
 #endif
-
 
 #include "config.h"
 
@@ -68,7 +66,6 @@
 #include <ml_scope.h>
 #endif
 
-
 void setup()
 {
     /*
@@ -85,7 +82,6 @@ void setup()
     Serial.printf("This is free software, and you are welcome to redistribute it\n");
     Serial.printf("under certain conditions; \n");
 
-
     Serial.printf("Initialize Synth Module\n");
     Synth_Init();
 
@@ -101,7 +97,6 @@ void setup()
 #endif
 
     Audio_Setup();
-
 
     /*
      * Initialize reverb
@@ -172,15 +167,13 @@ void setup()
 /* this is used to add a task to core 0 */
 TaskHandle_t Core0TaskHnd;
 
-inline
-void Core0TaskInit()
+inline void Core0TaskInit()
 {
     /* we need a second task for the terminal output */
     xTaskCreatePinnedToCore(Core0Task, "CoreTask0", 8000, NULL, 999, &Core0TaskHnd, 0);
 }
 
-inline
-void Core0TaskSetup()
+inline void Core0TaskSetup()
 {
     /*
      * init your stuff for core0 here
@@ -212,7 +205,7 @@ void Core0TaskLoop()
 #ifdef MIDI_VIA_USB_ENABLED
     adc_prescaler++;
     if (adc_prescaler > 15) /* use prescaler when USB is active because it is very time consuming */
-#endif /* MIDI_VIA_USB_ENABLED */
+#endif                      /* MIDI_VIA_USB_ENABLED */
     {
         adc_prescaler = 0;
         AdcMul_Process();
@@ -270,8 +263,8 @@ void Synth_RealTimeMsg(uint8_t msg)
 
 #ifdef MIDI_SYNC_MASTER
 
-#define MIDI_PPQ    24
-#define SAMPLES_PER_MIN  (SAMPLE_RATE*60)
+#define MIDI_PPQ 24
+#define SAMPLES_PER_MIN (SAMPLE_RATE * 60)
 
 static float midi_tempo = 120.0f;
 
@@ -310,6 +303,36 @@ void Synth_SongPosReset(uint8_t unused, float var)
     }
 }
 
+const uint8_t maxNote = 96;
+const uint8_t minNote = 36;
+const uint8_t channel = 1;
+const float velocity = 0.5f;
+
+void PlayNextNote()
+{
+    static uint8_t lastNote = 0;
+    static uint8_t note = 60;
+    static int8_t direction = 1;
+
+    Synth_NoteOn(channel, note, velocity);
+
+    note += direction;
+    if (note >= maxNote)
+    {
+        direction = (int8_t)-1;
+    }
+    else if (note <= minNote)
+    {
+        direction = (int8_t)1;
+    }
+
+    if (lastNote)
+    {
+        Synth_NoteOff(channel, lastNote);
+    }
+    lastNote = note;
+}
+
 /*
  * use this if something should happen every second
  * - you can drive a blinking LED for example
@@ -320,7 +343,6 @@ inline void Loop_1Hz(void)
     Blink_Process();
 #endif
 }
-
 
 /*
  * our main loop
@@ -388,7 +410,7 @@ void loop()
      * add some mono reverb
      */
     Reverb_Process(fl_sample, SAMPLE_BUFFER_SIZE);
-    memcpy(fr_sample,  fl_sample, sizeof(fr_sample));
+    memcpy(fr_sample, fl_sample, sizeof(fr_sample));
 
     /*
      * Output the audio
@@ -462,8 +484,8 @@ void App_UsbMidiShortMsgReceived(uint8_t *msg)
 /*
  * Test functions
  */
-#if defined(I2C_SCL) && defined (I2C_SDA)
-void  ScanI2C(void)
+#if defined(I2C_SCL) && defined(I2C_SDA)
+void ScanI2C(void)
 {
     Wire.begin(I2C_SDA, I2C_SCL);
 
@@ -513,4 +535,3 @@ void  ScanI2C(void)
     }
 }
 #endif
-
